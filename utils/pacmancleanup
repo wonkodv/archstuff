@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# ask about every package that is neither in base, base-devel or listed in ~/p/pacmanPackagesToKeep
+for x in `comm -23 <(pacman -Qqen|sort) <((pacman -Qqg base base-devel; cat ~/p/pacmanPackagesToKeep | sed 's/\s*#.*$//'; )|sort -u)`
+do
+	echo $'\n\n\n'
+	pacman -Qi $x
+	read -n 1 -p "Keep, keepComment, Remove, Ignore, Skip all?  <$x>? [k/c/r/I,s]: " r
+	
+	if [[ "$r" == "r" ]]
+	then
+		sudo pacman -Rcu $x
+	elif [[ "$r" == "c" ]]
+	then
+		echo
+		read -e -p "Comment: " c
+		echo -e "$x\t#$c" >> ~/p/pacmanPackagesToKeep
+	elif [[ "$r" == "k" ]]
+	then
+		echo -e "$x" >> ~/p/pacmanPackagesToKeep
+	elif [[ "$r" == "s" ]]
+	then
+		break
+	fi
+done
+
+# remove abandoned dependencies
+while a=`pacman -Qtdq`
+do
+	sudo pacman -Rcu $a
+done
+
+# remove pkg files of packages not installed
+sudo pacman -Sc

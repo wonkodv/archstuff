@@ -1,0 +1,7 @@
+#!/bin/bash
+
+[ -z "$1" ] && echo "rate missing (kb)" && exit 1
+
+export _TRICKLE_RATE="$1"
+
+exec trickle -d "$1"  $SHELL

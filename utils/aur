@@ -1,0 +1,34 @@
+#!/bin/bash
+
+cd ~/p/aur
+
+[ -z "$1" ]&& exit 1
+
+p="$1"
+
+u=`curl -s "https://aur.archlinux.org/rpc.php?type=info&arg=$p" |  python -mjson.tool | grep 'URLPath' | cut -d\" -f4 `
+
+
+if [ -z "$u" ] 
+then
+	curl -s "https://aur.archlinux.org/rpc.php?type=search&arg=$p" | python -mjson.tool | grep 'Description\|Name\|NumVotes\|},'  | cut -d\: -f2- | sed -e 's/},\|"\|,//g'
+	exit 2
+fi
+
+wget "https://aur.archlinux.org$u" || exit 3
+
+tar xzf "$p".tar.gz
+cd "$p"
+
+
+if [ -f "*.install" ] 
+then
+	vim PKGBUILD 
+else
+	vim PKGBUILD *.install
+fi
+
+read  -e -p "Proceed? [y/N]: " ok
+[ "$ok" != "Y" ] && [ "$ok" != "y" ] && exit 4
+
+makepkg -si

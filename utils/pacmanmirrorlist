@@ -1,0 +1,18 @@
+#!/bin/bash
+
+country='DE'
+sudo true
+
+url="https://www.archlinux.org/mirrorlist/?country=$country&protocol=https&protocol=http&ip_version=4&use_mirror_status=on"
+
+tmpfile=$(mktemp --suffix=-mirrorlist)
+tmpfile2=$(mktemp --suffix=-mirrorlist-sorted)
+
+wget -qO- "$url" | sed 's/^#Server/Server/g' > "$tmpfile"		|| exit 1
+echo got list
+rankmirrors -n 6 "$tmpfile" > "$tmpfile2"				|| exit 2
+echo sorted list
+sudo mv -i /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.orig	|| exit 3
+echo backed up
+sudo mv -i "$tmpfile2" /etc/pacman.d/mirrorlist				|| exit 4
+echo activated new
