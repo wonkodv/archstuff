@@ -32,3 +32,5 @@ if [[ -n $b ]]
 then
 	xrandr --output $b --preferred --primary --${1:-right-of} $a										|| exit 5
 fi
+
+echo 'awesome.restart()' | awesome-client
