@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ask about every package that is neither in base, base-devel or listed in ~/p/pacmanPackagesToKeep
+echo ask about every package that is neither in base, base-devel or listed in ~/p/pacmanPackagesToKeep
 for x in `comm -23 <(pacman -Qqen|sort) <((pacman -Qqg base base-devel; cat ~/p/pacmanPackagesToKeep | sed 's/\s*#.*$//'; )|sort -u)`
 do
 	echo $'\n\n\n'
@@ -24,11 +24,14 @@ do
 	fi
 done
 
-# remove abandoned dependencies
+echo remove abandoned dependencies
 while a=`pacman -Qtdq`
 do
 	sudo pacman -Rcu $a
 done
 
-# remove pkg files of packages not installed
+echo remove pkg files of packages not installed
 sudo pacman -Sc
+
+echo Ask about all *.pac{new,save} files
+sudo pacdiff
