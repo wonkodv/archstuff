@@ -2,10 +2,7 @@
 
 if ! modprobe vboxdrv &> /dev/null
 then
-	if ! gksudo  -- bash -c "modprobe vboxdrv;modprobe vboxnetadp;modprobe vboxnetflt;modprobe vboxpci";
-	then
-		exit $?
-	fi
-
+	gksudo virtualbox-modprobe || { echo "no modprobe" ; exit 1 ; }
 fi
+
 /usr/bin/virtualbox &>/dev/null

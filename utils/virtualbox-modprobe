@@ -1,0 +1,9 @@
+#!/bin/bash
+	for mod in /lib/modules/extramodules*/vbox*
+	do
+		if ! insmod $mod
+		then
+			exit $?
+		fi
+	done
+	exit 0
