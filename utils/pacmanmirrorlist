@@ -16,3 +16,5 @@ sudo mv -i /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.orig	|| exit 3
 echo backed up
 sudo mv -i "$tmpfile2" /etc/pacman.d/mirrorlist				|| exit 4
 echo activated new
+sudo pacman -Syy
+echo done
