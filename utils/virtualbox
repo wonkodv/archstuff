@@ -2,7 +2,7 @@
 
 if ! modprobe vboxdrv &> /dev/null
 then
-	gksudo virtualbox-modprobe || { echo "no modprobe" ; exit 1 ; }
+    gksudo /sbin/rcvboxdrv setup || { echo "no modprobe" ; exit 1 ; }
 fi
 
 /usr/bin/virtualbox &>/dev/null

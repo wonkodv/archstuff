@@ -1,10 +1,11 @@
 #!/bin/bash
 
+set -e
 
 a=
 b=
 c=
-x="`xrandr | grep -o  ".* connected" | cut -d' ' -f1 `"													|| exit 1
+x="`xrandr | grep -o  ".* connected" | cut -d' ' -f1 `"
 
 for f in LVDS VGA DVI-D HDMI
 do
@@ -19,18 +20,18 @@ printf "a: %s\nb: %s\nc: %s\n" $a $b $c
 
 if [[ -n $c ]]
 then
-	xrandr --output $c --off																			|| exit 2
+	xrandr --output $c --off
 fi
 
-[[ -n $a ]]																								|| exit 3
+[[ -n $a ]]
 
 
-xrandr --output $a --preferred --primary																|| exit 4
+xrandr --output $a --preferred --primary
 
 
 if [[ -n $b ]]
 then
-	xrandr --output $b --preferred --primary --${1:-right-of} $a										|| exit 5
+	xrandr --output $b --preferred --${1:-left-of} $a
 fi
 
 echo 'awesome.restart()' | awesome-client

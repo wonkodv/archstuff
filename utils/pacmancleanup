@@ -5,23 +5,32 @@ for x in `comm -23 <(pacman -Qqen|sort) <((pacman -Qqg base base-devel; cat ~/p/
 do
 	echo $'\n\n\n'
 	pacman -Qi $x
-	read -n 1 -p "Keep, keepComment, Remove, Ignore, Skip all?  <$x>? [k/c/r/I,s]: " r
-	
-	if [[ "$r" == "r" ]]
-	then
-		sudo pacman -Rcu $x
-	elif [[ "$r" == "c" ]]
-	then
+
+	while read -n 1 -p "Keep, keep with Comment, Remove, Ignore, make Dependency, keep All?  <$x>? [k/c/r/I/d/a]: " r
+	do
 		echo
-		read -e -p "Comment: " c
-		echo -e "$x\t#$c" >> ~/p/pacmanPackagesToKeep
-	elif [[ "$r" == "k" ]]
-	then
-		echo -e "$x" >> ~/p/pacmanPackagesToKeep
-	elif [[ "$r" == "s" ]]
-	then
-		break
-	fi
+		case "$r" in
+			k|keep)
+				echo -e "$x" >> ~/p/pacmanPackagesToKeep
+			;;
+			c|comment)
+				read -e -p "Comment: " c &&
+				echo -e "$x\t#$c" >> ~/p/pacmanPackagesToKeep 
+			;;
+			r|remove)
+				sudo pacman -Rcu $x
+			;;
+			''|i|ignore)
+				true
+			;;
+			d|dependency)
+				sudo pacman -S --asdeps $x
+			;;
+			a|all)
+				break 2
+			;;
+		esac && break
+	done
 done
 
 echo remove abandoned dependencies

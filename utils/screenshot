@@ -1,4 +1,3 @@
 #!/bin/bash
 
 
-import -snaps 1 --window ""  "${1:-$HOME/tmp/screenshot}.png"
