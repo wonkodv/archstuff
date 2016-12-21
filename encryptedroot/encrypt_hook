@@ -4,19 +4,6 @@ run_hook() {
     modprobe -a -q dm-crypt >/dev/null 2>&1
     [ "${quiet}" = "y" ] && CSQUIET=">/dev/null"
 
-    # wait for blockdevice with keyfile
-    if [ -n "$cryptwaitfor" ]; then
-        echo "Waiting for Device ($cryptwaitfor). Press an Enter to continue with password:"
-        while ! [ -b "$cryptwaitfor" ]
-        do
-            if read -t 1
-            then
-                cryptkey=
-                break
-            fi
-        done
-    fi
-
     # Get keyfile if specified
     ckeyfile="/crypto_keyfile.bin"
     if [ -n "$cryptkey" ]; then
@@ -26,22 +13,32 @@ EOF
 
         if [ "$ckdev" = "rootfs" ]; then
             ckeyfile=$ckarg1
-        elif resolved=$(resolve_device "${ckdev}" ${rootdelay}); then
-            case ${ckarg1} in
-                *[!0-9]*)
-                    # Use a file on the device
-                    # ckarg1 is not numeric: ckarg1=filesystem, ckarg2=path
-                    mkdir /ckey
-                    mount -r -t "$ckarg1" "$resolved" /ckey
-                    dd if="/ckey/$ckarg2" of="$ckeyfile" >/dev/null 2>&1
-                    umount /ckey
-                    ;;
-                *)
-                    # Read raw data from the block device
-                    # ckarg1 is numeric: ckarg1=offset, ckarg2=length
-                    dd if="$resolved" of="$ckeyfile" bs=1 skip="$ckarg1" count="$ckarg2" >/dev/null 2>&1
-                    ;;
-            esac
+        else
+
+            while ! resolved=$(resolve_device "${ckdev}" ${rootdelay}); do
+                echo "Waiting for Key Device ${ckdev}($resolved). Press an Enter to continue with password:"
+                if read -t 1 ; then
+                    ckeyfile=
+                    break
+                fi
+            done
+            if [ -n "${ckeyfile}" ]; then
+                case ${ckarg1} in
+                    *[!0-9]*)
+                        # Use a file on the device
+                        # ckarg1 is not numeric: ckarg1=filesystem, ckarg2=path
+                        mkdir /ckey
+                        mount -r -t "$ckarg1" "$resolved" /ckey
+                        dd if="/ckey/$ckarg2" of="$ckeyfile" >/dev/null 2>&1
+                        umount /ckey
+                        ;;
+                    *)
+                        # Read raw data from the block device
+                        # ckarg1 is numeric: ckarg1=offset, ckarg2=length
+                        dd if="$resolved" of="$ckeyfile" bs=1 skip="$ckarg1" count="$ckarg2" >/dev/null 2>&1
+                        ;;
+                esac
+            fi
         fi
         [ ! -f ${ckeyfile} ] && echo "Keyfile could not be opened. Reverting to passphrase." || echo -e "got the Key"
     fi
@@ -92,7 +89,7 @@ EOF
 
                 #loop until we get a real password
                 while ! eval cryptsetup open --type luks ${resolved} ${cryptname} ${cryptargs} ${CSQUIET}; do
-                    sleep 2;
+                    echo "Password wrong"
                 done
             fi
             if [ -e "/dev/mapper/${cryptname}" ]; then
