@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+
+mkdir -p ~/p/aur
 cd ~/p/aur
 
 [ -z "$1" ]&& exit 1
@@ -21,14 +24,13 @@ tar xzf "$p".tar.gz
 cd "$p"
 
 
-if [ -f "*.install" ] 
+vim PKGBUILD 
+if ls "*.install" &>/dev/null
 then
-	vim PKGBUILD 
-else
-	vim PKGBUILD *.install
+    vim *.install
 fi
 
 read  -e -p "Proceed? [y/N]: " ok
 [ "$ok" != "Y" ] && [ "$ok" != "y" ] && exit 4
 
-makepkg -si
+makepkg -i
